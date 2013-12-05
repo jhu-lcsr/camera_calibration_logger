@@ -5,6 +5,7 @@ import tf
 import std_msgs.msg as std_msgs
 import sensor_msgs.msg as sensor_msgs
 import geometry_msgs.msg as geometry_msgs
+import camera_calibration_msgs.msg as camera_calibration_msgs
 import cv2
 import numpy
 from cv_bridge import CvBridge, CvBridgeError
@@ -15,7 +16,7 @@ class SampleRecorder(object):
         self.listener = tf.TransformListener()
 
         self.image_sub = rospy.Subscriber('/camera/image_raw',sensor_msgs.Image, self.image_cb)
-        self.sample_sub = rospy.Subscriber('/cameracalibrator/added_sample',std_msgs.Int16, self.sampled_cb)
+        self.sample_sub = rospy.Subscriber('%s/calibration_samples' % rospy.remap_name("camera"),std_msgs.Int16, self.sampled_cb)
         self.poses = []
         self.last_image = None
         self.poselog = open('poses.txt','w')
@@ -34,7 +35,7 @@ class SampleRecorder(object):
             rot = [1,0,0,0]
 
         self.poses.append([trans,rot])
-        rospy.loginfo("Recorded sample: " + str(trans) + " | " + str(rot) )
+        rospy.loginfo("Recorded sample "+str(msg.header.seq)+ ": " + str(trans) + " | " + str(rot) )
 
         if self.last_image:
             bridge_ = CvBridge()
